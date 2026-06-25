@@ -27,24 +27,38 @@ async function registerCommands(client) {
   }
 
   try {
+    console.log(`📝 Registering ${slashCommands.length} slash commands...`);
+    
     if (config.guildId) {
       await rest.put(Routes.applicationGuildCommands(clientId, config.guildId), { body: slashCommands });
-      console.log(`✓ Slash commands registered to guild ${config.guildId} (${slashCommands.length} commands)`);
+      console.log(`✅ Slash commands registered to guild ${config.guildId}`);
     } else {
       await rest.put(Routes.applicationCommands(clientId), { body: slashCommands });
-      console.log(`✓ Slash commands registered globally (${slashCommands.length} commands)`);
+      console.log(`✅ Slash commands registered globally`);
     }
+    
+    console.log(`✅ Successfully registered ${slashCommands.length} commands:`);
+    slashCommands.forEach(cmd => console.log(`   • /${cmd.name}`));
+    
   } catch (error) {
+    console.error('❌ Failed to register slash commands');
+    
     if (error.code === 50001) {
-      console.error('❌ Missing Access: Bot lacks "applications.commands" scope');
-      console.error('Fix: Re-invite bot with OAuth2 scopes: "bot" + "applications.commands"');
-      console.error('URL: https://discord.com/api/oauth2/authorize?client_id=' + clientId + '&scope=bot%20applications.commands&permissions=0');
+      console.error('\n⚠️  ERROR: Missing Access - Bot lacks "applications.commands" scope');
+      console.error('\n🔧 FIX: Re-invite your bot with the correct OAuth2 scopes:');
+      console.error(`\n📋 Copy this URL and open it in your browser:\n`);
+      console.error(`https://discord.com/api/oauth2/authorize?client_id=${clientId}&scope=bot%20applications.commands&permissions=1099511627775`);
+      console.error('\n✅ After re-inviting, restart the bot and commands will register automatically.\n');
     } else if (error.code === 50013) {
-      console.error('❌ Missing Permissions: Bot lacks required permissions in the guild');
+      console.error('⚠️  ERROR: Missing Permissions - Bot lacks required permissions in the guild');
+    } else if (error.status === 401) {
+      console.error('⚠️  ERROR: Unauthorized - Invalid bot token');
     } else {
-      console.error('❌ Failed to register slash commands:', error.message);
+      console.error(`⚠️  ERROR: ${error.message}`);
     }
-    throw error;
+    
+    // Don't throw - allow bot to continue running even if commands fail to register
+    console.error('\n⚠️  Bot will continue running, but slash commands may not be available.');
   }
 }
 
