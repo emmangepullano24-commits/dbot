@@ -1,4 +1,5 @@
 const { EmbedBuilder } = require('discord.js');
+const GuildSettings = require('../database/models/GuildSettings');
 const AutoRole = require('../database/models/AutoRole');
 const Welcome = require('../database/models/Welcome');
 
@@ -30,3 +31,4 @@ module.exports = {
     }
   }
 };
+
