@@ -7,8 +7,16 @@ module.exports = {
     .addStringOption(option => option.setName('name').setDescription('New channel name').setRequired(true))
     .setDefaultMemberPermissions(PermissionFlagsBits.ManageChannels),
   async execute(interaction) {
-    const topic = interaction.options.getString('name');
-    await interaction.channel.setName(topic.replace(/\s+/g, '-').toLowerCase());
-    await interaction.reply({ content: `Renamed the ticket to ${topic}.`, ephemeral: false });
+    try {
+      const newName = interaction.options.getString('name');
+      const formattedName = newName.replace(/\s+/g, '-').toLowerCase();
+      
+      await interaction.channel.setName(formattedName);
+      await interaction.editReply({ content: `✅ Renamed the ticket to ${newName}.` });
+    } catch (error) {
+      console.error('Rename command error:', error);
+      await interaction.editReply({ content: '❌ Failed to rename ticket.', flags: 64 });
+    }
   }
 };
+

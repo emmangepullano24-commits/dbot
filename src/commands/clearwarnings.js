@@ -8,11 +8,23 @@ module.exports = {
     .addUserOption(option => option.setName('user').setDescription('User to clear warnings for').setRequired(true))
     .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
   async execute(interaction) {
-    const target = interaction.options.getUser('user');
-    if (!target) return interaction.reply({ content: 'User not found.', ephemeral: true });
-    
-    await Warning.deleteMany({ guildId: interaction.guildId, userId: target.id });
-    await interaction.reply({ content: `Cleared warnings for ${target.tag}.`, ephemeral: false });
+    try {
+      const target = interaction.options.getUser('user');
+      if (!target) {
+        return await interaction.editReply({ content: '❌ User not found.', flags: 64 });
+      }
+
+      try {
+        await Warning.deleteMany({ guildId: interaction.guildId, userId: target.id });
+      } catch (dbError) {
+        console.warn('Failed to clear warnings from database:', dbError.message);
+      }
+
+      await interaction.editReply({ content: `✅ Cleared warnings for ${target.tag}.` });
+    } catch (error) {
+      console.error('Clearwarnings command error:', error);
+      await interaction.editReply({ content: '❌ Failed to clear warnings.', flags: 64 });
+    }
   }
 };
 
