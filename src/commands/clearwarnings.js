@@ -9,7 +9,10 @@ module.exports = {
     .setDefaultMemberPermissions(PermissionFlagsBits.ModerateMembers),
   async execute(interaction) {
     const target = interaction.options.getUser('user');
+    if (!target) return interaction.reply({ content: 'User not found.', ephemeral: true });
+    
     await Warning.deleteMany({ guildId: interaction.guildId, userId: target.id });
     await interaction.reply({ content: `Cleared warnings for ${target.tag}.`, ephemeral: false });
   }
 };
+

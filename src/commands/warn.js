@@ -12,7 +12,10 @@ module.exports = {
     const target = interaction.options.getUser('user');
     const reason = interaction.options.getString('reason') || 'No reason provided';
 
+    if (!target) return interaction.reply({ content: 'User not found.', ephemeral: true });
+
     await Warning.create({ guildId: interaction.guildId, userId: target.id, moderatorId: interaction.user.id, reason });
     await interaction.reply({ content: `Warned ${target.tag} for: ${reason}`, ephemeral: false });
   }
 };
+

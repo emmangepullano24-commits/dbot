@@ -26,13 +26,27 @@ async function registerCommands(client) {
     throw new Error('CLIENT_ID is required for slash command registration');
   }
 
-  if (config.guildId) {
-    await rest.put(Routes.applicationGuildCommands(clientId, config.guildId), { body: slashCommands });
-    console.log(`Slash commands registered to guild ${config.guildId}`);
-  } else {
-    await rest.put(Routes.applicationCommands(clientId), { body: slashCommands });
-    console.log('Slash commands registered globally');
+  try {
+    if (config.guildId) {
+      await rest.put(Routes.applicationGuildCommands(clientId, config.guildId), { body: slashCommands });
+      console.log(`✓ Slash commands registered to guild ${config.guildId} (${slashCommands.length} commands)`);
+    } else {
+      await rest.put(Routes.applicationCommands(clientId), { body: slashCommands });
+      console.log(`✓ Slash commands registered globally (${slashCommands.length} commands)`);
+    }
+  } catch (error) {
+    if (error.code === 50001) {
+      console.error('❌ Missing Access: Bot lacks "applications.commands" scope');
+      console.error('Fix: Re-invite bot with OAuth2 scopes: "bot" + "applications.commands"');
+      console.error('URL: https://discord.com/api/oauth2/authorize?client_id=' + clientId + '&scope=bot%20applications.commands&permissions=0');
+    } else if (error.code === 50013) {
+      console.error('❌ Missing Permissions: Bot lacks required permissions in the guild');
+    } else {
+      console.error('❌ Failed to register slash commands:', error.message);
+    }
+    throw error;
   }
 }
 
 module.exports = { loadCommands, registerCommands };
+
